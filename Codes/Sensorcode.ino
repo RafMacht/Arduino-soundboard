@@ -22,7 +22,8 @@ const int potPin = A0;
 // Maximale meetafstand
 const int maxAfstand = 70;
 
-void setup() {
+void setup()
+{
   Serial.begin(9600);
 
   pinMode(trig1, OUTPUT);
@@ -40,14 +41,16 @@ void setup() {
   pinMode(led2B, OUTPUT);
 }
 
-void loop() {
+void loop()
+{
   int potValue = analogRead(potPin);
 
   // Potmeter bepaalt bereik tussen 70 en 0 cm
   int bereik = map(potValue, 0, 1023, 70, 0);
 
   // Vermijd problemen met map() als bereik 0 wordt
-  if (bereik < 1) {
+  if (bereik < 1)
+  {
     bereik = 1;
   }
 
@@ -70,7 +73,8 @@ void loop() {
   delay(50);
 }
 
-int meetAfstand(int trigPin, int echoPin) {
+int meetAfstand(int trigPin, int echoPin)
+{
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
 
@@ -81,26 +85,30 @@ int meetAfstand(int trigPin, int echoPin) {
   long duration = pulseIn(echoPin, HIGH, 30000);
 
   // Geen echo = behandel als maximale afstand
-  if (duration == 0) {
+  if (duration == 0)
+  {
     return maxAfstand;
   }
 
   int afstand = duration * 0.034 / 2;
 
   // Nooit meer dan 70 cm teruggeven
-  if (afstand > maxAfstand) {
+  if (afstand > maxAfstand)
+  {
     afstand = maxAfstand;
   }
 
   // Geen negatieve waarden
-  if (afstand < 0) {
+  if (afstand < 0)
+  {
     afstand = 0;
   }
 
   return afstand;
 }
 
-void zetKleur(int rPin, int gPin, int bPin, int afstand, int bereik) {
+void zetKleur(int rPin, int gPin, int bPin, int afstand, int bereik)
+{
   afstand = constrain(afstand, 0, bereik);
 
   int rood = map(afstand, 0, bereik, 255, 0);
@@ -109,9 +117,9 @@ void zetKleur(int rPin, int gPin, int bPin, int afstand, int bereik) {
   setRGB(rPin, gPin, bPin, rood, groen, 0);
 }
 
-void setRGB(int rPin, int gPin, int bPin, int r, int g, int b) {
+void setRGB(int rPin, int gPin, int bPin, int r, int g, int b)
+{
   analogWrite(rPin, r);
   analogWrite(gPin, g);
   analogWrite(bPin, b);
 }
-Serial.print(test);
