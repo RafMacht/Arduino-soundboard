@@ -273,6 +273,7 @@ def main():
 
     if args.list_ports:
         print_ports(get_available_ports())
+        print("test")
         return
 
     run(
