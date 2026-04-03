@@ -114,3 +114,4 @@ void setRGB(int rPin, int gPin, int bPin, int r, int g, int b) {
   analogWrite(gPin, g);
   analogWrite(bPin, b);
 }
+Serial.print(test);
