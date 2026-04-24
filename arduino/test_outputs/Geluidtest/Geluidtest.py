@@ -1,6 +1,5 @@
 import argparse
 import os
-import re
 import time
 from pathlib import Path
 
@@ -10,278 +9,185 @@ import pygame
 import serial
 from serial.tools import list_ports
 
-DEFAULT_BAUD_RATE = 9600
-DEFAULT_SOUND_FILE = Path(__file__).with_name("fluit.ogg")
-BASE_VOLUME = 0.00
-FULL_VOLUME_DISTANCE_CM = 15.0
-MAX_VOLUME = 1.0
-VOLUME_BOOST = 1.35
+BAUD_RATE = 9600
+SOUND_FOLDER = Path(__file__).parent
+
 ARDUINO_HINTS = ("arduino", "uno", "nano", "ch340", "usb serial", "cp210", "ftdi")
-TEXT_LINE_PATTERNS = (
-    re.compile(
-        r"Potmeter:\s*(?P<pot>\d+)\s*\|\s*"
-        r"Bereik:\s*(?P<range>\d+)\s*cm\s*\|\s*"
-        r"Sensor 1:\s*(?P<s1>\d+)\s*cm\s*\|\s*"
-        r"Sensor 2:\s*(?P<s2>\d+)\s*cm",
-        re.IGNORECASE,
-    ),
-    re.compile(
-        r"Pot:\s*(?P<pot>\d+)\s*\|\s*"
-        r"Bereik:\s*(?P<range>\d+)\s*cm\s*\|\s*"
-        r"S1:\s*(?P<s1>\d+)\s*cm\s*\|\s*"
-        r"S2:\s*(?P<s2>\d+)\s*cm",
-        re.IGNORECASE,
-    ),
-)
 
-
-def map_distance_to_volume(distance, max_range):
-    if FULL_VOLUME_DISTANCE_CM <= 0:
-        return 0.0
-
-    distance = max(0.0, float(distance))
-    linear = max(0.0, 1.0 - (distance / FULL_VOLUME_DISTANCE_CM))
-    boosted = (linear**0.75) * MAX_VOLUME * VOLUME_BOOST
-    return min(MAX_VOLUME, boosted)
-
-
-def get_available_ports():
-    return list(list_ports.comports())
+SENSOR_NOTES = [
+    ["C4", "E4", "G4", "C5"],
+    ["C5", "E5", "G5", "C6"],
+    ["C6", "E6", "G6", "C7"],
+]
 
 
 def print_ports(ports):
-    if not ports:
-        print("Geen COM-poorten gevonden.", flush=True)
-        return
-
-    print("Beschikbare poorten:", flush=True)
+    print("Beschikbare poorten:")
     for port in ports:
-        print(f"{port.device} - {port.description}", flush=True)
+        print(f"{port.device} - {port.description}")
 
 
-def pick_port(ports, requested_port=None):
+def kies_poort(requested_port=None):
+    ports = list(list_ports.comports())
+
     if not ports:
-        raise SystemExit("Geen COM-poorten gevonden. Sluit eerst je Arduino aan.")
-
-    if requested_port:
-        requested_port = requested_port.upper()
-        for port in ports:
-            if port.device.upper() == requested_port:
-                return port.device
-        print_ports(ports)
-        raise SystemExit(
-            f"{requested_port} niet gevonden. Gebruik --list-ports om te kijken wat wel bestaat."
-        )
-
-    matches = []
-    for port in ports:
-        description = f"{port.description} {getattr(port, 'manufacturer', '')} {port.hwid}".lower()
-        if any(hint in description for hint in ARDUINO_HINTS):
-            matches.append(port)
-
-    if matches:
-        if len(matches) > 1:
-            print(
-                f"Meerdere Arduino-poorten gevonden, ik gebruik automatisch {matches[0].device}.",
-                flush=True,
-            )
-        return matches[0].device
-
-    if len(ports) == 1:
-        print(
-            f"Geen expliciete Arduino-naam gevonden, ik gebruik de enige poort: {ports[0].device}.",
-            flush=True,
-        )
-        return ports[0].device
+        raise SystemExit("Geen COM-poorten gevonden. Sluit je Arduino aan.")
 
     print_ports(ports)
-    raise SystemExit("Kon geen Arduino-poort kiezen. Start opnieuw met --port COMx.")
+
+    if requested_port:
+        return requested_port
+
+    for port in ports:
+        description = f"{port.description} {port.hwid}".lower()
+        if any(hint in description for hint in ARDUINO_HINTS):
+            return port.device
+
+    if len(ports) == 1:
+        return ports[0].device
+
+    raise SystemExit(
+        "Geen Arduino-poort automatisch gevonden. Gebruik bijvoorbeeld: python script.py --port COM4"
+    )
 
 
-def open_serial_connection(port, baud_rate):
+def open_serial(port):
     try:
-        ser = serial.Serial(port, baud_rate, timeout=1)
+        ser = serial.Serial(port, BAUD_RATE, timeout=1)
     except serial.SerialException as exc:
         raise SystemExit(
-            f"Kan COM-poort {port} niet openen: {exc}\n"
-            "Sluit Serial Monitor, Serial Plotter of andere programma's die de poort gebruiken."
-        ) from exc
+            f"Kan {port} niet openen.\n"
+            "Sluit Serial Monitor, Serial Plotter of andere programma's die de poort gebruiken.\n"
+            f"Fout: {exc}"
+        )
 
-    # Een Uno reset meestal kort zodra de seriele poort open gaat.
     time.sleep(2)
     ser.reset_input_buffer()
-    ser.readline()
     return ser
 
 
-def init_audio(sound_file):
-    sound_path = Path(sound_file)
-    if not sound_path.exists():
-        raise SystemExit(f"Geluidsbestand niet gevonden: {sound_path}")
+def load_sounds():
+    pygame.mixer.init(frequency=44100)
+    pygame.mixer.set_num_channels(16)
 
-    try:
-        pygame.mixer.init(frequency=44100)
-        pygame.mixer.set_num_channels(8)
-        sound = pygame.mixer.Sound(str(sound_path))
-    except pygame.error as exc:
-        raise SystemExit(
-            f"Kon pygame-audio niet starten: {exc}\n"
-            "Controleer of je een actieve audio-uitvoer hebt en of pygame-ce is geinstalleerd."
-        ) from exc
+    sounds = {}
 
-    base_channel = sound.play(loops=-1)
-    sensor_channel = sound.play(loops=-1)
+    for notes in SENSOR_NOTES:
+        for note in notes:
+            if note in sounds:
+                continue
 
-    if base_channel is None or sensor_channel is None:
-        pygame.mixer.quit()
-        raise SystemExit("Kon de audiokanalen niet starten.")
+            path = SOUND_FOLDER / f"{note}.wav"
 
-    base_channel.set_volume(BASE_VOLUME)
-    sensor_channel.set_volume(0.0)
-    return base_channel, sensor_channel
+            if not path.exists():
+                raise SystemExit(f"Geluidsbestand ontbreekt: {path}")
+
+            sounds[note] = pygame.mixer.Sound(str(path))
+
+    return sounds
 
 
-def run_speaker_test(base_channel, sensor_channel, seconds=2.0, volume=1.0):
-    print(f"Luidsprekertest: {seconds:.1f}s op volume {volume:.2f}.", flush=True)
-    base_channel.set_volume(volume)
-    sensor_channel.set_volume(0.0)
-    pygame.time.wait(int(seconds * 1000))
-    base_channel.set_volume(BASE_VOLUME)
-    sensor_channel.set_volume(0.0)
+def parse_line(line):
+    parts = line.strip().split(",")
 
-
-def parse_sensor_line(line):
-    stripped = line.strip()
-    if not stripped:
+    if len(parts) != 5:
         return None
 
-    parts = [part.strip() for part in stripped.split(",")]
-    if len(parts) == 4:
-        try:
-            return tuple(int(part) for part in parts)
-        except ValueError:
-            pass
-
-    for pattern in TEXT_LINE_PATTERNS:
-        match = pattern.search(stripped)
-        if match:
-            return (
-                int(match.group("pot")),
-                int(match.group("range")),
-                int(match.group("s1")),
-                int(match.group("s2")),
-            )
-
-    return None
+    try:
+        pot = int(parts[0])
+        bereik = int(parts[1])
+        s1 = int(parts[2])
+        s2 = int(parts[3])
+        s3 = int(parts[4])
+        return pot, bereik, s1, s2, s3
+    except ValueError:
+        return None
 
 
-def run(
-    port=None,
-    baud_rate=DEFAULT_BAUD_RATE,
-    sound_file=DEFAULT_SOUND_FILE,
-    max_updates=None,
-    speaker_test=False,
-):
-    ports = get_available_ports()
-    print_ports(ports)
-    chosen_port = pick_port(ports, port)
-    print(f"Verbinden met {chosen_port} op {baud_rate} baud.", flush=True)
+def afstand_naar_noot_index(afstand, bereik, aantal_noten):
+    if bereik < 1:
+        bereik = 1
 
-    ser = open_serial_connection(chosen_port, baud_rate)
-    base_channel, sensor_channel = init_audio(sound_file)
-    if speaker_test:
-        run_speaker_test(base_channel, sensor_channel)
-    valid_updates = 0
+    afstand = max(0, min(afstand, bereik))
+
+    index = round((1 - afstand / bereik) * (aantal_noten - 1))
+
+    return max(0, min(index, aantal_noten - 1))
+
+
+def run(port=None):
+    gekozen_poort = kies_poort(port)
+    print(f"Verbinden met {gekozen_poort}...")
+
+    ser = open_serial(gekozen_poort)
+    sounds = load_sounds()
+
+    current_notes = [None, None, None]
+    channels = [None, None, None]
 
     try:
         while True:
             line = ser.readline().decode("utf-8", errors="ignore").strip()
+
             if not line:
                 continue
 
-            print(f"SERIAL: {line}", flush=True)
+            parsed = parse_line(line)
 
-            parsed = parse_sensor_line(line)
             if parsed is None:
-                print(f"Regel overgeslagen: {line}", flush=True)
+                print(f"Overgeslagen: {line}")
                 continue
 
-            pot_value, bereik, afstand1, afstand2 = parsed
-            vol1 = map_distance_to_volume(afstand1, bereik)
-            vol2 = map_distance_to_volume(afstand2, bereik)
-            volume = vol2
-            sensor_boost = max(0.0, volume - BASE_VOLUME)
+            pot, bereik, s1, s2, s3 = parsed
+            afstanden = [s1, s2, s3]
 
-            base_channel.set_volume(BASE_VOLUME)
-            sensor_channel.set_volume(sensor_boost)
-            valid_updates += 1
+            for i in range(3):
+                afstand = afstanden[i]
+
+                # Niets gedetecteerd of te ver weg = geen geluid
+                if afstand >= 70:
+                    if channels[i] is not None:
+                        channels[i].stop()
+                        channels[i] = None
+                        current_notes[i] = None
+                    continue
+
+                note_index = afstand_naar_noot_index(
+                    afstand, bereik, len(SENSOR_NOTES[i])
+                )
+                note = SENSOR_NOTES[i][note_index]
+
+                if note != current_notes[i]:
+                    if channels[i] is not None:
+                        channels[i].stop()
+
+                    channels[i] = sounds[note].play(loops=-1)
+                    current_notes[i] = note
+
+                if channels[i] is not None:
+                    channels[i].set_volume(1.0)
 
             print(
-                f"pot={pot_value} bereik={bereik} s1={afstand1} v1={vol1:.2f} "
-                f"s2={afstand2} v2={vol2:.2f} base={BASE_VOLUME:.2f} boost={sensor_boost:.2f} volume={volume:.2f} bron=sensor2",
-                flush=True,
+                f"Bereik={bereik} cm | "
+                f"S1={s1} cm -> {current_notes[0]} | "
+                f"S2={s2} cm -> {current_notes[1]} | "
+                f"S3={s3} cm -> {current_notes[2]}"
             )
 
-            if max_updates is not None and valid_updates >= max_updates:
-                print(
-                    f"Testmodus klaar na {valid_updates} geldige updates.", flush=True
-                )
-                break
     except KeyboardInterrupt:
-        print("Gestopt door gebruiker.", flush=True)
+        print("Gestopt.")
+
     finally:
         ser.close()
         pygame.mixer.quit()
 
 
-def build_parser():
-    parser = argparse.ArgumentParser(
-        description="Lees Arduino-sensordata en stuur het volume van twee audiokanalen aan."
-    )
-    parser.add_argument(
-        "--port", help="Bijvoorbeeld COM7. Laat leeg voor automatische detectie."
-    )
-    parser.add_argument(
-        "--baud", type=int, default=DEFAULT_BAUD_RATE, help="Seriele baudrate."
-    )
-    parser.add_argument(
-        "--sound",
-        default=str(DEFAULT_SOUND_FILE),
-        help="Pad naar het WAV-bestand dat in een lus moet spelen.",
-    )
-    parser.add_argument(
-        "--max-updates",
-        type=int,
-        help="Stop automatisch na dit aantal geldige seriele updates. Handig om te testen.",
-    )
-    parser.add_argument(
-        "--list-ports",
-        action="store_true",
-        help="Toon alleen de beschikbare COM-poorten en stop daarna.",
-    )
-    parser.add_argument(
-        "--speaker-test",
-        action="store_true",
-        help="Speel test.wav eerst 2 seconden hoorbaar af om je audio-uitvoer te controleren.",
-    )
-    return parser
-
-
 def main():
-    parser = build_parser()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--port", help="Bijvoorbeeld COM4")
     args = parser.parse_args()
 
-    if args.list_ports:
-        print_ports(get_available_ports())
-        return
-
-    run(
-        port=args.port,
-        baud_rate=args.baud,
-        sound_file=args.sound,
-        max_updates=args.max_updates,
-        speaker_test=args.speaker_test,
-    )
+    run(args.port)
 
 
 if __name__ == "__main__":
