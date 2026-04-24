@@ -111,8 +111,10 @@ void leesEncoder()
       index--;
     }
 
-    if (index > 3) index = 0;
-    if (index < 0) index = 3;
+    if (index > 3)
+      index = 0;
+    if (index < 0)
+      index = 3;
   }
 
   laatsteCLK = huidigeCLK;
