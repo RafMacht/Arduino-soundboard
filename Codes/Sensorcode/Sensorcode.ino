@@ -6,6 +6,10 @@ const int echo1 = 8;
 const int trig2 = 2;
 const int echo2 = 13;
 
+// Sensor 3
+const int trig3 = A1;
+const int echo3 = A2;
+
 // RGB LED 1
 const int led1R = 3;
 const int led1G = 5;
@@ -15,6 +19,11 @@ const int led1B = 6;
 const int led2R = 9;
 const int led2G = 10;
 const int led2B = 11;
+
+// RGB LED 3
+const int led3R = A3;
+const int led3G = A4;
+const int led3B = A5;
 
 // Potmeter
 const int potPin = A0;
@@ -32,6 +41,9 @@ void setup()
   pinMode(trig2, OUTPUT);
   pinMode(echo2, INPUT);
 
+  pinMode(trig3, OUTPUT);
+  pinMode(echo3, INPUT);
+
   pinMode(led1R, OUTPUT);
   pinMode(led1G, OUTPUT);
   pinMode(led1B, OUTPUT);
@@ -39,16 +51,18 @@ void setup()
   pinMode(led2R, OUTPUT);
   pinMode(led2G, OUTPUT);
   pinMode(led2B, OUTPUT);
+
+  pinMode(led3R, OUTPUT);
+  pinMode(led3G, OUTPUT);
+  pinMode(led3B, OUTPUT);
 }
 
 void loop()
 {
   int potValue = analogRead(potPin);
 
-  // Potmeter bepaalt bereik tussen 70 en 0 cm
   int bereik = map(potValue, 0, 1023, 70, 0);
 
-  // Vermijd problemen met map() als bereik 0 wordt
   if (bereik < 1)
   {
     bereik = 1;
@@ -56,9 +70,11 @@ void loop()
 
   int afstand1 = meetAfstand(trig1, echo1);
   int afstand2 = meetAfstand(trig2, echo2);
+  int afstand3 = meetAfstand(trig3, echo3);
 
   zetKleur(led1R, led1G, led1B, afstand1, bereik);
   zetKleur(led2R, led2G, led2B, afstand2, bereik);
+  zetKleur(led3R, led3G, led3B, afstand3, bereik);
 
   Serial.print("Pot: ");
   Serial.print(potValue);
@@ -68,6 +84,8 @@ void loop()
   Serial.print(afstand1);
   Serial.print(" cm | S2: ");
   Serial.print(afstand2);
+  Serial.print(" cm | S3: ");
+  Serial.print(afstand3);
   Serial.println(" cm");
 
   delay(50);
@@ -84,7 +102,6 @@ int meetAfstand(int trigPin, int echoPin)
 
   long duration = pulseIn(echoPin, HIGH, 30000);
 
-  // Geen echo = behandel als maximale afstand
   if (duration == 0)
   {
     return maxAfstand;
@@ -92,13 +109,11 @@ int meetAfstand(int trigPin, int echoPin)
 
   int afstand = duration * 0.034 / 2;
 
-  // Nooit meer dan 70 cm teruggeven
   if (afstand > maxAfstand)
   {
     afstand = maxAfstand;
   }
 
-  // Geen negatieve waarden
   if (afstand < 0)
   {
     afstand = 0;
