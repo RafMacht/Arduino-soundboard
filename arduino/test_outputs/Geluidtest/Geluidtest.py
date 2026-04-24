@@ -11,7 +11,7 @@ import serial
 from serial.tools import list_ports
 
 DEFAULT_BAUD_RATE = 9600
-DEFAULT_SOUND_FILE = Path(__file__).with_name("test.wav")
+DEFAULT_SOUND_FILE = Path(__file__).with_name("fluit.ogg")
 BASE_VOLUME = 0.00
 FULL_VOLUME_DISTANCE_CM = 15.0
 MAX_VOLUME = 1.0

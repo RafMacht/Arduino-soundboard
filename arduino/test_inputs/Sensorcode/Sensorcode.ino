@@ -61,12 +61,7 @@ void loop()
 {
   int potValue = analogRead(potPin);
 
-  int bereik = map(potValue, 0, 1023, 70, 0);
-
-  if (bereik < 1)
-  {
-    bereik = 1;
-  }
+  int bereik = map(potValue, 0, 1023, 70, 1);
 
   int afstand1 = meetAfstand(trig1, echo1);
   int afstand2 = meetAfstand(trig2, echo2);
@@ -76,17 +71,17 @@ void loop()
   zetKleur(led2R, led2G, led2B, afstand2, bereik);
   zetKleur(led3R, led3G, led3B, afstand3, bereik);
 
-  Serial.print("Pot: ");
+  // Formaat voor Python:
+  // pot,bereik,sensor1,sensor2,sensor3
   Serial.print(potValue);
-  Serial.print(" | Bereik: ");
+  Serial.print(",");
   Serial.print(bereik);
-  Serial.print(" cm | S1: ");
-  Serial.print(afstand1);
-  Serial.print(" cm | S2: ");
+  Serial.print(",");
   Serial.print(afstand2);
-  Serial.print(" cm | S3: ");
-  Serial.print(afstand3);
-  Serial.println(" cm");
+  Serial.print(",");
+  Serial.print(afstand1);
+  Serial.print(",");
+  Serial.println(afstand3);
 
   delay(50);
 }
