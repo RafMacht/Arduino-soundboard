@@ -20,34 +20,32 @@ SENSOR_NOTES = [
     ["C6", "E6", "G6", "C7"],
 ]
 
-
-def print_ports(ports):
-    print("Beschikbare poorten:")
-    for port in ports:
-        print(f"{port.device} - {port.description}")
+INSTRUMENTS = ["Fluit", "Piano", "Trompet", "Viool"]
 
 
 def kies_poort(requested_port=None):
     ports = list(list_ports.comports())
 
     if not ports:
-        raise SystemExit("Geen COM-poorten gevonden. Sluit je Arduino aan.")
+        raise SystemExit("Geen COM-poorten gevonden.")
 
-    print_ports(ports)
+    print("Beschikbare poorten:")
+    for port in ports:
+        print(f"{port.device} - {port.description}")
 
     if requested_port:
         return requested_port
 
     for port in ports:
-        description = f"{port.description} {port.hwid}".lower()
-        if any(hint in description for hint in ARDUINO_HINTS):
+        info = f"{port.description} {port.hwid}".lower()
+        if any(hint in info for hint in ARDUINO_HINTS):
             return port.device
 
     if len(ports) == 1:
         return ports[0].device
 
     raise SystemExit(
-        "Geen Arduino-poort automatisch gevonden. Gebruik bijvoorbeeld: python script.py --port COM4"
+        "Geen Arduino-poort gevonden. Gebruik bv: python script.py --port COM4"
     )
 
 
@@ -56,9 +54,7 @@ def open_serial(port):
         ser = serial.Serial(port, BAUD_RATE, timeout=1)
     except serial.SerialException as exc:
         raise SystemExit(
-            f"Kan {port} niet openen.\n"
-            "Sluit Serial Monitor, Serial Plotter of andere programma's die de poort gebruiken.\n"
-            f"Fout: {exc}"
+            f"Kan {port} niet openen. Sluit Serial Monitor of andere programma's.\n{exc}"
         )
 
     time.sleep(2)
@@ -72,17 +68,20 @@ def load_sounds():
 
     sounds = {}
 
-    for notes in SENSOR_NOTES:
-        for note in notes:
-            if note in sounds:
-                continue
+    for instrument in INSTRUMENTS:
+        sounds[instrument] = {}
 
-            path = SOUND_FOLDER / f"{note}.wav"
+        for notes in SENSOR_NOTES:
+            for note in notes:
+                if note in sounds[instrument]:
+                    continue
 
-            if not path.exists():
-                raise SystemExit(f"Geluidsbestand ontbreekt: {path}")
+                path = SOUND_FOLDER / instrument / f"{note}.wav"
 
-            sounds[note] = pygame.mixer.Sound(str(path))
+                if not path.exists():
+                    raise SystemExit(f"Geluidsbestand ontbreekt: {path}")
+
+                sounds[instrument][note] = pygame.mixer.Sound(str(path))
 
     return sounds
 
@@ -90,7 +89,7 @@ def load_sounds():
 def parse_line(line):
     parts = line.strip().split(",")
 
-    if len(parts) != 5:
+    if len(parts) != 6:
         return None
 
     try:
@@ -99,7 +98,10 @@ def parse_line(line):
         s1 = int(parts[2])
         s2 = int(parts[3])
         s3 = int(parts[4])
-        return pot, bereik, s1, s2, s3
+        instrument = parts[5].strip()
+
+        return pot, bereik, s1, s2, s3, instrument
+
     except ValueError:
         return None
 
@@ -115,6 +117,13 @@ def afstand_naar_noot_index(afstand, bereik, aantal_noten):
     return max(0, min(index, aantal_noten - 1))
 
 
+def stop_kanaal(i, channels, current_notes):
+    if channels[i] is not None:
+        channels[i].stop()
+        channels[i] = None
+        current_notes[i] = None
+
+
 def run(port=None):
     gekozen_poort = kies_poort(port)
     print(f"Verbinden met {gekozen_poort}...")
@@ -123,6 +132,7 @@ def run(port=None):
     sounds = load_sounds()
 
     current_notes = [None, None, None]
+    current_instruments = [None, None, None]
     channels = [None, None, None]
 
     try:
@@ -138,40 +148,43 @@ def run(port=None):
                 print(f"Overgeslagen: {line}")
                 continue
 
-            pot, bereik, s1, s2, s3 = parsed
+            pot, bereik, s1, s2, s3, instrument = parsed
+
+            if instrument not in sounds:
+                print(f"Onbekend instrument: {instrument}")
+                continue
+
             afstanden = [s1, s2, s3]
 
             for i in range(3):
                 afstand = afstanden[i]
 
-                # Niets gedetecteerd of te ver weg = geen geluid
                 if afstand >= 70:
-                    if channels[i] is not None:
-                        channels[i].stop()
-                        channels[i] = None
-                        current_notes[i] = None
+                    stop_kanaal(i, channels, current_notes)
+                    current_instruments[i] = None
                     continue
 
                 note_index = afstand_naar_noot_index(
                     afstand, bereik, len(SENSOR_NOTES[i])
                 )
+
                 note = SENSOR_NOTES[i][note_index]
 
-                if note != current_notes[i]:
-                    if channels[i] is not None:
-                        channels[i].stop()
+                if note != current_notes[i] or instrument != current_instruments[i]:
+                    stop_kanaal(i, channels, current_notes)
 
-                    channels[i] = sounds[note].play(loops=-1)
+                    channels[i] = sounds[instrument][note].play(loops=-1)
                     current_notes[i] = note
+                    current_instruments[i] = instrument
 
                 if channels[i] is not None:
                     channels[i].set_volume(1.0)
 
             print(
-                f"Bereik={bereik} cm | "
-                f"S1={s1} cm -> {current_notes[0]} | "
-                f"S2={s2} cm -> {current_notes[1]} | "
-                f"S3={s3} cm -> {current_notes[2]}"
+                f"Instrument={instrument} | Bereik={bereik} cm | "
+                f"S1={s1} -> {current_notes[0]} | "
+                f"S2={s2} -> {current_notes[1]} | "
+                f"S3={s3} -> {current_notes[2]}"
             )
 
     except KeyboardInterrupt:
