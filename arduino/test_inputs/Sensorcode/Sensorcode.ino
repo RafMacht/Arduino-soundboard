@@ -1,3 +1,8 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
 // Sensor 1
 const int trig1 = 7;
 const int echo1 = 8;
@@ -7,34 +12,38 @@ const int trig2 = 2;
 const int echo2 = 13;
 
 // Sensor 3
-const int trig3 = A1;
-const int echo3 = A2;
-
-// RGB LED 1
-const int led1R = 3;
-const int led1G = 5;
-const int led1B = 6;
-
-// RGB LED 2
-const int led2R = 9;
-const int led2G = 10;
-const int led2B = 11;
+const int trig3 = 12;
+const int echo3 = 11;
 
 // Potmeter
 const int potPin = A0;
 
 // Encoder
-const int clkPin = A3;
-const int dtPin = A4;
-const int swPin = A5;
+const int clkPin = 3;
+const int dtPin = 4;
+const int swPin = 5;
 
-int laatsteCLK;
+String keuzes[4] = {"Viool", "Piano", "Trompet", "Fluit"};
+
 int index = 0;
-String waarden[4] = {"Fluit", "Piano", "Trompet", "Viool"};
-bool knopVorige = HIGH;
-String gekozenInstrument = "Fluit";
+int laatsteCLK;
 
-// Maximale meetafstand
+bool geselecteerd = false;
+bool knopVorige = HIGH;
+
+String gekozenInstrument = "Viool";
+
+// Debounce
+unsigned long laatsteDraaiTijd = 0;
+const unsigned long draaiWachttijd = 180;
+
+unsigned long laatsteKnopTijd = 0;
+const unsigned long knopWachttijd = 250;
+
+// Sensor timing
+unsigned long laatsteSensorPrint = 0;
+const unsigned long sensorInterval = 200;
+
 const int maxAfstand = 70;
 
 void setup()
@@ -50,83 +59,131 @@ void setup()
   pinMode(trig3, OUTPUT);
   pinMode(echo3, INPUT);
 
-  pinMode(led1R, OUTPUT);
-  pinMode(led1G, OUTPUT);
-  pinMode(led1B, OUTPUT);
-
-  pinMode(led2R, OUTPUT);
-  pinMode(led2G, OUTPUT);
-  pinMode(led2B, OUTPUT);
-
   pinMode(clkPin, INPUT);
   pinMode(dtPin, INPUT);
   pinMode(swPin, INPUT_PULLUP);
 
   laatsteCLK = digitalRead(clkPin);
+
+  lcd.init();
+  lcd.backlight();
+
+  toonKeuze();
 }
 
 void loop()
 {
   leesEncoder();
+  leesKnop();
 
-  int potValue = analogRead(potPin);
-  int bereik = map(potValue, 0, 1023, 70, 1);
+  if (millis() - laatsteSensorPrint >= sensorInterval)
+  {
+    laatsteSensorPrint = millis();
 
-  int afstand1 = meetAfstand(trig1, echo1);
-  int afstand2 = meetAfstand(trig2, echo2);
-  int afstand3 = meetAfstand(trig3, echo3);
+    int potValue = analogRead(potPin);
+    int bereik = map(potValue, 0, 1023, 70, 1);
 
-  zetKleur(led1R, led1G, led1B, afstand1, bereik);
-  zetKleur(led2R, led2G, led2B, afstand2, bereik);
+    int afstand1 = meetAfstand(trig1, echo1);
+    int afstand2 = meetAfstand(trig2, echo2);
+    int afstand3 = meetAfstand(trig3, echo3);
 
-  // Formaat:
-  // pot,bereik,sensor1,sensor2,sensor3,instrument
-  Serial.print(potValue);
-  Serial.print(",");
-  Serial.print(bereik);
-  Serial.print(",");
-  Serial.print(afstand2);
-  Serial.print(",");
-  Serial.print(afstand1);
-  Serial.print(",");
-  Serial.print(afstand3);
-  Serial.print(",");
-  Serial.println(gekozenInstrument);
-
-  delay(50);
+    // Zelfde volgorde als je vorige code: sensor 1 en 2 omgewisseld
+    Serial.print(potValue);
+    Serial.print(",");
+    Serial.print(bereik);
+    Serial.print(",");
+    Serial.print(afstand2);
+    Serial.print(",");
+    Serial.print(afstand1);
+    Serial.print(",");
+    Serial.print(afstand3);
+    Serial.print(",");
+    Serial.println(gekozenInstrument);
+  }
 }
 
 void leesEncoder()
 {
+  if (geselecteerd)
+  {
+    return;
+  }
+
   int huidigeCLK = digitalRead(clkPin);
 
   if (laatsteCLK == HIGH && huidigeCLK == LOW)
   {
-    if (digitalRead(dtPin) == HIGH)
+    if (millis() - laatsteDraaiTijd > draaiWachttijd)
     {
-      index++;
-    }
-    else
-    {
-      index--;
-    }
+      if (digitalRead(dtPin) == HIGH)
+      {
+        index++;
+      }
+      else
+      {
+        index--;
+      }
 
-    if (index > 3)
-      index = 0;
-    if (index < 0)
-      index = 3;
+      if (index > 3) index = 0;
+      if (index < 0) index = 3;
+
+      toonKeuze();
+
+      laatsteDraaiTijd = millis();
+    }
   }
 
   laatsteCLK = huidigeCLK;
+}
 
+void leesKnop()
+{
   bool knopHuidig = digitalRead(swPin);
 
   if (knopVorige == HIGH && knopHuidig == LOW)
   {
-    gekozenInstrument = waarden[index];
+    if (millis() - laatsteKnopTijd > knopWachttijd)
+    {
+      geselecteerd = !geselecteerd;
+
+      if (geselecteerd)
+      {
+        gekozenInstrument = keuzes[index];
+        toonGeselecteerd();
+      }
+      else
+      {
+        toonKeuze();
+      }
+
+      laatsteKnopTijd = millis();
+    }
   }
 
   knopVorige = knopHuidig;
+}
+
+void toonKeuze()
+{
+  lcd.clear();
+
+  lcd.setCursor(0, 0);
+  lcd.print("Kies instrument");
+
+  lcd.setCursor(0, 1);
+  lcd.print("> ");
+  lcd.print(keuzes[index]);
+}
+
+void toonGeselecteerd()
+{
+  lcd.clear();
+
+  lcd.setCursor(0, 0);
+  lcd.print("Geselecteerd:");
+
+  lcd.setCursor(0, 1);
+  lcd.print(gekozenInstrument);
 }
 
 int meetAfstand(int trigPin, int echoPin)
@@ -158,21 +215,4 @@ int meetAfstand(int trigPin, int echoPin)
   }
 
   return afstand;
-}
-
-void zetKleur(int rPin, int gPin, int bPin, int afstand, int bereik)
-{
-  afstand = constrain(afstand, 0, bereik);
-
-  int rood = map(afstand, 0, bereik, 255, 0);
-  int groen = map(afstand, 0, bereik, 0, 255);
-
-  setRGB(rPin, gPin, bPin, rood, groen, 0);
-}
-
-void setRGB(int rPin, int gPin, int bPin, int r, int g, int b)
-{
-  analogWrite(rPin, r);
-  analogWrite(gPin, g);
-  analogWrite(bPin, b);
 }
