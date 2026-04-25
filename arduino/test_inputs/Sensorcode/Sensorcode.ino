@@ -1,7 +1,13 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <FastLED.h>
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// LED-strip
+const int ledPin = 6;
+const int aantalLeds = 16;
+CRGB leds[aantalLeds];
 
 // Sensor 1
 const int trig1 = 7;
@@ -67,8 +73,12 @@ void setup()
 
   lcd.init();
   lcd.backlight();
-
   toonKeuze();
+
+  FastLED.addLeds<WS2812B, ledPin, GRB>(leds, aantalLeds);
+  FastLED.setBrightness(80);
+  FastLED.clear();
+  FastLED.show();
 }
 
 void loop()
@@ -87,7 +97,8 @@ void loop()
     int afstand2 = meetAfstand(trig2, echo2);
     int afstand3 = meetAfstand(trig3, echo3);
 
-    // Zelfde volgorde als je vorige code: sensor 1 en 2 omgewisseld
+    updateLedStrip(afstand2, afstand1, afstand3, bereik);
+
     Serial.print(potValue);
     Serial.print(",");
     Serial.print(bereik);
@@ -99,6 +110,42 @@ void loop()
     Serial.print(afstand3);
     Serial.print(",");
     Serial.println(gekozenInstrument);
+  }
+}
+
+void updateLedStrip(int afstand1, int afstand2, int afstand3, int bereik)
+{
+  // Sensor 1: eerste 5 LEDs
+  zetLedGroep(0, 5, afstand1, bereik);
+
+  // Sensor 2: volgende 6 LEDs
+  zetLedGroep(5, 6, afstand2, bereik);
+
+  // Sensor 3: laatste 5 LEDs
+  zetLedGroep(11, 5, afstand3, bereik);
+
+  FastLED.show();
+}
+
+void zetLedGroep(int startLed, int aantal, int afstand, int bereik)
+{
+  if (bereik < 1)
+  {
+    bereik = 1;
+  }
+
+  afstand = constrain(afstand, 0, bereik);
+
+  // Ver = rood, dichtbij = groen
+  int groen = map(afstand, bereik, 0, 0, 255);
+  int rood = map(afstand, bereik, 0, 255, 0);
+
+  groen = constrain(groen, 0, 255);
+  rood = constrain(rood, 0, 255);
+
+  for (int i = startLed; i < startLed + aantal; i++)
+  {
+    leds[i] = CRGB(rood, groen, 0);
   }
 }
 
