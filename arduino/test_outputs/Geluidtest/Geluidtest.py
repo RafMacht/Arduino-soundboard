@@ -15,9 +15,9 @@ SOUND_FOLDER = Path(__file__).parent
 ARDUINO_HINTS = ("arduino", "uno", "nano", "ch340", "usb serial", "cp210", "ftdi")
 
 SENSOR_NOTES = [
-    ["C4", "E4", "G4", "C5"],
-    ["C5", "E5", "G5", "C6"],
-    ["C6", "E6", "G6", "C7"],
+    ["C4", "D4", "E4", "F4"],
+    ["E4", "F4", "G4", "A4"],
+    ["G4", "A4", "B4", "C5"],
 ]
 
 INSTRUMENTS = ["Fluit", "Piano", "Trompet", "Viool"]
