@@ -2,7 +2,7 @@
 ## Inleiding
 In kader van het vak opkomende technologieën (OT) werken we een touchless soundboard uit door gebruik te maken van een Arduino Uno, verschillende componenten en coderingsskills.
 
-![arduino](imgs/OIP.jpg)
+![arduino](imgs/image_2026-05-05_193850016.png)
 
 ## Contributors
 - Raf Machtelinckx
