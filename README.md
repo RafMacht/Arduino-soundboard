@@ -39,3 +39,10 @@ Het product bestaat uit een aantal verschillende onderdelen:
 [Klik hier](docs/fysiek_prototype.md)
 
 *Nog te maken in Wokwi*
+
+## Code
+### Input code
+[Arduino code](arduino/test_inputs/Sensorcode/Sensorcode.ino)
+
+### Output code
+[Python code](arduino/test_outputs/Geluidtest/Geluidtest.py)
