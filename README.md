@@ -36,7 +36,7 @@ Het product bestaat uit een aantal verschillende onderdelen:
 - 1× voedingskabel naar computer
 
 ### Connectieschema
-[Klik hier](docs/fysiek_prototype.md)
+[Klik hier](fysiek_prototype.md)
 
 *Nog te maken in Wokwi*
 
