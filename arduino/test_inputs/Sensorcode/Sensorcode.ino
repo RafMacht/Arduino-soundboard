@@ -10,16 +10,16 @@ const int aantalLeds = 16;        // Aantal LEDs
 CRGB leds[aantalLeds];            // Array met LED-kleuren
 
 // Sensor 1 pins
-const int trig1 = 7;
-const int echo1 = 8;
+const int trig1 = 12;
+const int echo1 = 13;
 
 // Sensor 2 pins
-const int trig2 = 2;
-const int echo2 = 13;
+const int trig2 = 9;
+const int echo2 = 11;
 
 // Sensor 3 pins
-const int trig3 = 12;
-const int echo3 = 11;
+const int trig3 = 7;
+const int echo3 = 8;
 
 // Potmeter (voor gevoeligheid/afstand)
 const int potPin = A0;
