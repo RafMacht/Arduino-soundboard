@@ -56,6 +56,7 @@ De Python-code verwerkt de seriële output van de Arduino en speelt via de compu
 ## Eindresultaat
 ### Video
 In deze video demonstreren we de Touchless Soundboard. We starten door de Python-code op de pc uit te voeren. De Arduino-code is op dat moment al geüpload naar de Arduino. Daarna kiezen we het gewenste geluid. Vervolgens kalibreren we het bereik van de afstandssensoren naar onze eigen voorkeur. Daarna kan het gebruik van de Touchless Soundboard beginnen.
+
 [Video](https://www.youtube.com/watch?v=dAtlcQHVYiE)
 
 ### Renders
