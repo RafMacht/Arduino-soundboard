@@ -15,7 +15,8 @@ Daarnaast kan de gevoeligheid van de sensoren worden aangepast. Zo kan het instr
 ---
 ## Project
 
-**Product:** Een soundboard waarmee je zelf je eigen geluid/muziek kunt maken doormiddel van gebaren voor afstandssensoren. Je kan de verschillende tonen kiezen door te scrollen door de instrumentenbibliotheek.
+**Product:**
+Een soundboard waarmee je zelf geluid en muziek kunt maken met behulp van handbewegingen die door afstandssensoren worden gedetecteerd. Je kunt verschillende tonen kiezen door door de instrumentenbibliotheek te scrollen en de gevoeligheid van de sensoren aan te passen. Een ledstrip geeft aan welke sensor je activeert en met welke intensiteit.
 
 **Doel:**
 Gebruikers op een leuke en creatieve manier muziek laten creëeren.
