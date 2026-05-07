@@ -1,9 +1,10 @@
 # Touchless Soundboard
 ## Inleiding
-Voor het vak Opkomende Technologieën ontwikkelden we een innovatief, touchless soundboard dat muziek maken op een intuïtieve en interactieve manier mogelijk maakt. Met behulp van een Arduino Uno, afstandssensoren en eigen code creëren we een systeem waarbij je door handbewegingen in de lucht verschillende tonen kan bespelen. De afstand tussen je hand en de sensor bepaalt het geluid, waardoor je op een vloeiende manier variatie en expressie in je muziek brengt.
+Voor het vak Opkomende Technologieën ontwikkelden we een innovatief, touchless soundboard waarmee je op een intuïtieve en interactieve manier muziek kunt maken. Met behulp van een Arduino Uno, afstandssensoren en eigen code creëren we een systeem waarbij je door handbewegingen in de lucht verschillende tonen kunt bespelen.
 
-Via een draaiknop kan de gebruiker eenvoudig schakelen tussen verschillende instrumenten uit een ingebouwde bibliotheek, zodat één systeem meerdere muzikale stijlen ondersteunt. Bovendien kan de gevoeligheid van de sensoren aangepast worden, waardoor het instrument volledig af te stemmen is op de voorkeuren van de gebruiker. 
-Dit project combineert hardware en software tot een speelse maar krachtige toepassing, waarin technologie en creativiteit samenkomen.
+De afstand tussen je hand en de sensor bepaalt het geluid. Daardoor kun je op een vloeiende manier variatie en expressie in je muziek brengen. Via een draaiknop kan de gebruiker eenvoudig schakelen tussen verschillende instrumenten uit een ingebouwde bibliotheek, zodat één systeem meerdere muzikale stijlen ondersteunt.
+
+Daarnaast kan de gevoeligheid van de sensoren worden aangepast. Zo kan het instrument volledig worden afgestemd op de voorkeuren van de gebruiker. Dit project combineert hardware en software tot een speelse maar krachtige toepassing waarin technologie en creativiteit samenkomen.
 
 ![arduino](imgs/image_2026-05-05_193850016.png)
 
