@@ -24,4 +24,4 @@ LED-strip (16 LEDs): Aangesloten op digitale pin 6. De strip is verdeeld in drie
 Alle componenten (sensoren, LCD, encoder en LED-strip) delen een gezamenlijke 5V spanningslijn en GND (aarde) vanaf de Arduino Uno.
 
 ## Flowchart
-![Wiring](imgs/)
+![Flowchart](imgs/image_2026-05-07_231853004.png)
