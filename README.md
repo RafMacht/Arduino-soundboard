@@ -40,7 +40,7 @@ Het product bestaat uit een aantal verschillende onderdelen:
 
 *Nog te maken in Wokwi*
 
-## Code
+## Codes
 ### Arduino code 
 De Arduino-code leest input uit via de sensoren en regelaars. Vervolgens verwerkt de Arduino deze gegevens en stuurt hij output naar het scherm. Daarnaast geeft hij seriële output door waarmee de Python-code verder kan werken.
 [Arduino code](arduino/test_inputs/Sensorcode/Sensorcode.ino)
