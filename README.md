@@ -40,7 +40,7 @@ Het product bestaat uit een aantal verschillende onderdelen:
 ### Connectieschema
 [Klik hier](fysiek_prototype.md)
 
-![Wiring](imgs/wiring.png)
+![Wiring](imgs/image_2026-05-07_223154215.png)
 
 ## Codes
 ### Arduino code 
