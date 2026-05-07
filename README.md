@@ -37,10 +37,10 @@ Het product bestaat uit een aantal verschillende onderdelen:
 - 1× voedingskabel naar computer
 - Jumper kabels
 
-### Connectieschema
+### Connectieschema & Flowchart
 [Klik hier](fysiek_prototype.md)
 
-*Nog te maken in Wokwi*
+![Wiring](imgs/image_2026-05-07_223154215.png)
 
 ## Codes
 ### Arduino code 
@@ -54,7 +54,5 @@ De Python-code verwerkt de seriële output van de Arduino en speelt via de compu
 [Python code](arduino/test_outputs/Geluidtest/Geluidtest.py)
 
 ## Eindresultaat
-### Video
-In deze video demonstreren we de Touchless Soundboard. We starten door de Python-code op de pc uit te voeren. De Arduino-code is op dat moment al geüpload naar de Arduino. Daarna kiezen we het gewenste geluid. Vervolgens kalibreren we het bereik van de afstandssensoren naar onze eigen voorkeur. Daarna kan het gebruik van de Touchless Soundboard beginnen.
-
-[Video](https://youtu.be/dAtlcQHVYiE)
+*LINK ER NOG INSTEKEN*
+[Video]()
