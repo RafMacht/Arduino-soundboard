@@ -54,5 +54,5 @@ De Python-code verwerkt de seriële output van de Arduino en speelt via de compu
 [Python code](arduino/test_outputs/Geluidtest/Geluidtest.py)
 
 ## Eindresultaat
-*LINK ER NOG INSTEKEN*
+![Wiring](imgs/image_2026-05-07_222522354.png)
 [Video]()
