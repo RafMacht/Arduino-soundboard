@@ -3,7 +3,7 @@
 In dit bestand kun je meer info vinden over hoe alles te verbinden.
 
 
-## wiring diagrama
+## wiring diagram
 ![Wiring](imgs/image_2026-05-07_223154215.png)
 
 ### 1. Sensoren en Invoer
@@ -23,3 +23,5 @@ LED-strip (16 LEDs): Aangesloten op digitale pin 6. De strip is verdeeld in drie
 ### 3. Voeding
 Alle componenten (sensoren, LCD, encoder en LED-strip) delen een gezamenlijke 5V spanningslijn en GND (aarde) vanaf de Arduino Uno.
 
+## Flowchart
+![Wiring](imgs/)
