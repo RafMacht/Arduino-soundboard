@@ -51,7 +51,7 @@ De Arduino-code leest input uit via de sensoren en regelaars. Vervolgens verwerk
 
 [Arduino code](arduino/test_inputs/Sensorcode/Sensorcode.ino)
 
-### Phyton code
+### Python code
 De Python-code verwerkt de seriële output van de Arduino en speelt via de computer geluidsfragmenten af. Deze geluidsfragmenten kunnen vooraf worden ingesteld.
 
 [Python code](arduino/test_outputs/Geluidtest/Geluidtest.py)
