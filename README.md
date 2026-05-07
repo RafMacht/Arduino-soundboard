@@ -40,7 +40,7 @@ Het product bestaat uit een aantal verschillende onderdelen:
 ### Connectieschema
 [Klik hier](fysiek_prototype.md)
 
-*Nog te maken in Wokwi*
+![Wiring](imgs/wiring.png)
 
 ## Codes
 ### Arduino code 
