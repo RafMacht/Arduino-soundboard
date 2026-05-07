@@ -41,6 +41,7 @@ Het product bestaat uit een aantal verschillende onderdelen:
 [Klik hier](fysiek_prototype.md)
 
 ![Wiring](imgs/image_2026-05-07_223154215.png)
+![Flowchart](imgs/image_2026-05-07_231853004.png)
 
 ## Codes
 ### Arduino code 
