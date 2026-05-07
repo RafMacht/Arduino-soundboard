@@ -29,11 +29,11 @@ Het product bestaat uit een aantal verschillende onderdelen:
 - 3× HC SR04 ultrasonic distance sensor
 - 1× WPI435 Digitale Encoder
 - 1× potentiometer
-- Jumper kabels
 - 1× Breadboard
 - 1× LED strip (5V)
 - 1× HD44780 1602 LCD-moduledisplaybundel met I2C-interface
 - 1× voedingskabel naar computer
+- Jumper kabels
 
 ### Connectieschema
 [Klik hier](fysiek_prototype.md)
@@ -41,8 +41,14 @@ Het product bestaat uit een aantal verschillende onderdelen:
 *Nog te maken in Wokwi*
 
 ## Code
-### Input code
+### Arduino code 
+De Arduino-code leest input uit via de sensoren en regelaars. Vervolgens verwerkt de Arduino deze gegevens en stuurt hij output naar het scherm. Daarnaast geeft hij seriële output door waarmee de Python-code verder kan werken.
 [Arduino code](arduino/test_inputs/Sensorcode/Sensorcode.ino)
 
-### Output code
+### Phyton code
+De Python-code verwerkt de seriële output van de Arduino en speelt via de computer geluidsfragmenten af. Deze geluidsfragmenten kunnen vooraf worden ingesteld.
 [Python code](arduino/test_outputs/Geluidtest/Geluidtest.py)
+
+## Eindresultaat
+*LINK ER NOG INSTEKEN*
+[Video]()
