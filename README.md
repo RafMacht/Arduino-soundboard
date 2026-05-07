@@ -37,7 +37,7 @@ Het product bestaat uit een aantal verschillende onderdelen:
 - 1× voedingskabel naar computer
 - Jumper kabels
 
-### Connectieschema
+### Connectieschema & Flowchart
 [Klik hier](fysiek_prototype.md)
 
 ![Wiring](imgs/image_2026-05-07_223154215.png)
